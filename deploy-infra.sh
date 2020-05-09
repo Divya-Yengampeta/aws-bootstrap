@@ -40,7 +40,9 @@ aws cloudformation deploy \
       GitHubBranch=$GH_BRANCH \
       GitHubPersonalAccessToken=$GH_ACCESS_TOKEN \
       CodePipelineBucket=$CODEPIPELINE_BUCKET
-# If the deploy succeeded, show the DNS name of the created instance	  --profile $CLI_PROFILE \
-if [ $? -eq 0 ]; then	  --stack-name $STACK_NAME-setup \
-  aws cloudformation list-exports --profile awsbootstrap --query "Exports[?Name=='InstanceEndpoint'].Value" 	  --template-file setup.yml \
+# If the deploy succeeded, show the DNS name of the created instance
+if [ $? -eq 0 ]; then
+  aws cloudformation list-exports \
+    --profile awsbootstrap \
+    --query "Exports[?Name=='InstanceEndpoint'].Value"
 fi
