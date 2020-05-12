@@ -1,7 +1,6 @@
-#!/bin/bash	AWS_ACCOUNT_ID=`aws sts get-caller-identity --profile awsbootstrap \
+#!/bin/bash
 STACK_NAME=awsbootstrap
 REGION=us-west-2
-AWS_ACCOUNT_ID='aws sts get-caller-identity --profile awsbootstrap --query "Account" --output text'
 CODEPIPELINE_BUCKET="codepipeline-980248979975"
 CLI_PROFILE=awsbootstrap
 EC2_INSTANCE_TYPE=t2.micro
@@ -25,5 +24,5 @@ aws cloudformation deploy --region $REGION --profile $CLI_PROFILE --stack-name $
 if [ $? -eq 0 ]; then
   aws cloudformation list-exports \
     --profile awsbootstrap \
-    --query "Exports[?Name=='InstanceEndpoint'].Value"
+    --query "Exports[?starts_with(Name,'InstanceEndpoint')].Value"
 fi
