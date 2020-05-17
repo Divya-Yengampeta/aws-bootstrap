@@ -45,6 +45,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref AWS::StackName
+
   VPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -54,6 +55,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref AWS::StackName
+
   SubnetAZ1:
     Type: AWS::EC2::Subnet
     Properties:
@@ -79,6 +81,7 @@ Resources:
           Value: !Ref AWS::StackName
         - Key: AZ
           Value: !Select [ 1, !GetAZs '' ]
+
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -119,6 +122,7 @@ Resources:
     Properties:
       RouteTableId: !Ref RouteTable
       SubnetId: !Ref SubnetAZ2
+
   InstanceRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -144,6 +148,7 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref AWS::StackName
+
   InstanceProfile:
     Type: "AWS::IAM::InstanceProfile"
     Properties:
@@ -217,28 +222,6 @@ Resources:
             export LOGICAL_ID=`aws --region us-east-1 ec2 describe-tags --filters "Name=resource-id,Values=${!INSTANCE_ID}" "Name=key,Values=aws:cloudformation:logical-id" | jq -r ".Tags[0].Value"`
             # Signal to CloudFormation that the instance is ready
             /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --region ${AWS::Region} --resource ${!LOGICAL_ID}
-
-  Instance:
-    Type: AWS::EC2::Instance
-    Properties:
-      SubnetId: !Ref SubnetAZ1
-      LaunchTemplate:
-        LaunchTemplateId: !Ref InstanceLaunchTemplate
-        Version: !GetAtt InstanceLaunchTemplate.LatestVersionNumber
-      Tags:
-        - Key: Name
-          Value: !Ref AWS::StackName
-
-  Instance2:
-    Type: AWS::EC2::Instance
-    Properties:
-      SubnetId: !Ref SubnetAZ2
-      LaunchTemplate:
-        LaunchTemplateId: !Ref InstanceLaunchTemplate
-        Version: !GetAtt InstanceLaunchTemplate.LatestVersionNumber
-      Tags:
-        - Key: Name
-          Value: !Ref AWS::StackName
 
   ScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
@@ -315,9 +298,6 @@ Resources:
       VpcId: !Ref VPC
       HealthCheckEnabled: true
       HealthCheckProtocol: HTTP
-      Targets:
-        - Id: !Ref Instance
-        - Id: !Ref Instance2
       Tags:
         - Key: Name
           Value: !Ref AWS::StackName
@@ -337,6 +317,7 @@ Resources:
           Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/PowerUserAccess
+
   BuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
@@ -350,15 +331,15 @@ Resources:
         Image: aws/codebuild/standard:2.0
       Source:
         Type: CODEPIPELINE
+
   DeploymentApplication:
     Type: AWS::CodeDeploy::Application
     Properties:
       ApplicationName: !Ref AWS::StackName
       ComputePlatform: Server
-      
+
   StagingDeploymentGroup:
     Type: AWS::CodeDeploy::DeploymentGroup
-    DependsOn: Instance
     Properties:
       DeploymentGroupName: staging
       AutoScalingGroups:
@@ -366,10 +347,6 @@ Resources:
       ApplicationName: !Ref DeploymentApplication
       DeploymentConfigName: CodeDeployDefault.AllAtOnce
       ServiceRoleArn: !GetAtt DeploymentRole.Arn
-      Ec2TagFilters:
-        - Key: aws:cloudformation:stack-name
-          Type: KEY_AND_VALUE
-          Value: !Ref AWS::StackName
 
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
@@ -442,16 +419,6 @@ Resources:
       TargetPipelineVersion: !GetAtt Pipeline.Version
       RegisterWithThirdParty: true
 Outputs:
-  InstanceEndpoint1:
-    Description: The DNS name for the created instance
-    Value: !Sub "http://${Instance.PublicDnsName}:8080"
-    Export:
-      Name: InstanceEndpoint1
-  InstanceEndpoint2:
-    Description: The DNS name for the created instance
-    Value: !Sub "http://${Instance2.PublicDnsName}:8080"
-    Export:
-      Name: InstanceEndpoint2
   LBEndpoint:
     Description: The DNS name for the LB
     Value: !Sub "http://${LoadBalancer.DNSName}:80"
