@@ -149,7 +149,7 @@ Resources:
               jq: []
           files:
             /home/ec2-user/install:
-              source: {"Fn::Join" : ["", ["https://aws-codedeploy-", {"Ref" : "AWS::Region"}, ".s3.amazonaws.com/latest/install"]]}
+              source: http://s3-us-west-2.amazonaws.com/aws-codedeploy-us-west-2/templates/latest/CodeDeploy_SampleCF_Template.json
               mode: "000755" # executable
           commands:
             00-install-cd-agent:
