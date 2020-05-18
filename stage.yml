@@ -149,8 +149,7 @@ Resources:
               jq: []
           files:
             /home/ec2-user/install:
-              source: !Sub "curl -O https://aws-codedeploy-
-        ${AWS::Region}.s3.amazonaws.com/latest/install"
+              source: {"Fn::Join" : ["", ["https://aws-codedeploy-", {"Ref" : "AWS::Region"}, ".s3.amazonaws.com/latest/install"]]}
               mode: "000755" # executable
           commands:
             00-install-cd-agent:
